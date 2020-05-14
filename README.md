@@ -16,7 +16,6 @@ This repository is a python implementation of Playground and Mining domain in [N
 ```
 # Requirements
 * Python 3 (it might work with Python 2, but I didn't test it)
-* Pygame, graphviz (for interactive visualization only)
 
 
 # Installation
