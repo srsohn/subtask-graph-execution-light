@@ -8,7 +8,7 @@ from sge.utils import WHITE, BLACK, DARK, LIGHT, GREEN, DARK_RED
 
 
 class MazeEnv(object):  # single batch
-    def __init__(self, game_name, graph_param, game_len, gamma, render_config={}):
+    def __init__(self, game_name, graph_param, game_len, gamma):
         if game_name == 'playground':
             from sge.playground import Playground
             game_config = Playground()
@@ -24,15 +24,11 @@ class MazeEnv(object):  # single batch
         self.config = game_config
         self.max_task = self.config.nb_subtask_type
         self.subtask_list = self.config.subtask_list
-        if len(render_config)>0:
-            self.rendering = render_config['vis']
-        else:
-            self.rendering = False
 
         # graph & map
         self.graph = SubtaskGraph(
             graph_folder, filename, self.max_task)  # just load all graph
-        self.map = Mazemap(game_name, game_config, render_config)
+        self.map = Mazemap(game_name, game_config)
         self.gamma = gamma
 
         # init
@@ -62,8 +58,6 @@ class MazeEnv(object):  # single batch
         self.step_count += 1
         self.time_over = self.step_count >= self.game_length
         self.game_over = (self.eligibility*self.mask).sum().item() == 0
-        if self.rendering:
-            self.render()
 
         return self._get_state(), self.reward, (self.game_over or self.time_over), self._get_info()
 
@@ -97,8 +91,7 @@ class MazeEnv(object):  # single batch
 
         # 3. reset map
         self.map.reset(self.subtask_id_list)
-        if self.rendering:
-            self.render()
+
         return self._get_state(), self._get_info()
 
     def state_spec(self):
@@ -112,25 +105,6 @@ class MazeEnv(object):  # single batch
 
     def get_actions(self):
         return self.config.legal_actions
-    
-    def render(self):
-        GREEN = "#50a000"
-        DARK_RED = "#a30000"
-        LIGHT = "#c0c0c0"  # light gray
-        color = []
-        for ind, sub_id in enumerate(self.graph.subtask_id_list):
-            if self.completion[ind] == 1:  # success
-                color.append(GREEN)  # Green
-            elif self.mask[ind] == 0:  # fail
-                color.append(DARK_RED)
-            elif self.eligibility[ind] == 0:  # inelig
-                color.append(LIGHT)
-            else:  # elig
-                color.append('white')
-        self.graph.draw_graph(self.config, self.rew_mag, color)
-        text_lines, text_widths, status, bg_colors = self._get_status()
-        self.map.render(self.step_count, text_lines,
-                        text_widths, status, bg_colors)
 
     # internal
     def _get_state(self):
@@ -142,7 +116,7 @@ class MazeEnv(object):  # single batch
             'eligibility': self.elig_id.astype(np.float),
             'step': step
         }
-    
+
     def _get_info(self):
         return {
             'graph': self.graph
@@ -170,41 +144,3 @@ class MazeEnv(object):  # single batch
         self.eligibility = self.graph.get_elig(self.completion)
         self.elig_id = get_id_from_ind_multihot(
             self.eligibility, self.graph.ind_to_id, self.max_task)
-
-    # rendering
-    def _get_status(self, reward=None):
-        text_lines, bg_colors = [], []
-        text_lines.append(['      Name', ' Obj', '+', 'Key'])
-        bg_colors.append(WHITE)
-
-        for ind, sub_id in enumerate(self.graph.subtask_id_list):
-            (action, oid) = self.config.subtask_param_list[sub_id]
-            action_key = self.config.operation_list[action]['key']
-            if 'name' in self.config.subtask_list[sub_id]:
-                sub_name = self.config.subtask_list[sub_id]['name']
-            else:
-                sub_name = self.action_meanings[action]+' ' + \
-                    self.config.object_param_list[oid]['name']
-            if self.completion[ind] == 1:  # success
-                color = GREEN
-            elif self.mask[ind] == 0:  # fail
-                color = DARK_RED
-            elif self.eligibility[ind] == 0:  # inelig
-                color = LIGHT
-            else:  # elig
-                color = WHITE
-            text_lines.append(
-                [sub_name, oid, '+', ' '+action_key])
-            bg_colors.append(color)
-
-        # text widths
-        text_widths = [0]*4
-        for _, line in enumerate(text_lines):
-            for nn, item in enumerate(line):
-                if type(item) == str:
-                    text_widths[nn] = max(text_widths[nn], len(item)+2)
-
-        fmt = "Step={:02d}/{:02d} | Return={:+2.02f} | Reward={:+1.02f}"
-        status = fmt.format(
-            self.step_count, self.game_length, self.ret, self.reward)
-        return text_lines, text_widths, status, bg_colors

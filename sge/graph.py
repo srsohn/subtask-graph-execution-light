@@ -1,7 +1,5 @@
 import os
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 
 
 __PATH__ = os.path.abspath(os.path.dirname(__file__))
@@ -68,66 +66,3 @@ class SubtaskGraph(object):
             np.sign((ANDmat.dot(tp)-b_AND)), -1).astype(np.float)
         elig = np.not_equal(np.sign((ORmat.dot(ANDout)-b_OR)), -1)
         return elig
-
-    # rendering
-    def draw_graph(self, config, rewards, colors):
-        from graphviz import Digraph
-        root = os.path.join(__PATH__, 'asset', config.env_name)
-        g = Digraph(comment='subtask graph', format='png',
-                    filename='./render/temp/subtask_graph')
-        g.attr(nodesep="0.1", ranksep=config.ranksep)
-        g.node_attr.update(fontsize="14", fontname='Arial')
-        # 1. add Or nodes in the first layer
-        for ind in range(self.numP[0]):
-            sub_id = self.ind_to_id[ind]
-            label = '\n{:+1.2f}'.format(rewards[ind])
-            if colors[ind] == 'white':
-                g.node('OR'+str(ind), label, shape='rect', margin="0,0", height="0",
-                       width="0", image=root+'/subtask{:02d}.png'.format(sub_id))
-            else:
-                g.node('OR'+str(ind), label, shape='rect', margin="0,0", height="0", width="0", image=root +
-                       '/subtask{:02d}.png'.format(sub_id), style='filled', color=colors[ind])
-
-        abias, obias = 0, self.numP[0]
-        for lind in range(self.num_level):
-            Na, No = self.numA[lind], self.numP[lind+1]
-            Amat = self.ANDmat[abias:abias+Na]
-            Omat = self.ORmat[obias:obias+No]
-            # Add AND nodes
-            for i in range(Na):
-                Aind = i + abias
-                g.node('AND'+str(Aind), "", shape='ellipse',
-                       style='filled', width="0.3", height="0.15", margin="0")
-
-            # Edge OR->AND
-            left, right = Amat.nonzero()
-            for i in range(len(left)):
-                Aind = abias + left[i]
-                Oind = right[i]
-                if Amat[left[i]][right[i]] < 0:
-                    g.edge('OR'+str(Oind), 'AND'+str(Aind),
-                           style="dashed", arrowsize="0.7")
-                else:
-                    g.edge('OR'+str(Oind), 'AND'+str(Aind), arrowsize="0.7")
-
-            # Add OR nodes
-            for i in range(No):
-                ind = i + obias
-                sub_id = self.ind_to_id[ind]
-                label = '\n{:+1.2f}'.format(rewards[ind])
-                if colors[ind] == 'white':
-                    g.node('OR'+str(ind), label, shape='rect', margin="0,0", width="0", height="0", image=root+'/subtask{:02d}.png'.format(sub_id))
-                else:
-                    g.node('OR'+str(ind), label, shape='rect', margin="0,0", width="0", height="0", image=root +
-                           '/subtask{:02d}.png'.format(sub_id), style='filled', color=colors[ind])
-
-            # Edge AND->OR
-            left, right = Omat.nonzero()
-            for i in range(len(left)):
-                Oind = obias + left[i]
-                Aind = right[i]
-                g.edge('AND'+str(Aind), 'OR'+str(Oind),
-                       arrowsize="0.7", arrowhead="odiamond")
-            abias += Na
-            obias += No
-        g.render()

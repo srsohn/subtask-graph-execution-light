@@ -1,7 +1,8 @@
-import numpy as np
 import os
 import sys
 import random
+import numpy as np
+
 from sge.mazeenv import MazeEnv
 from sge.utils import KEY
 

@@ -11,13 +11,8 @@ VERSION = '0.1.0'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'numpy', 'matplotlib',
+    'numpy',
 ]
-
-# What packages are optional?
-EXTRAS = {
-    'visualize': ['pygame', 'graphviz'],
-}
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
@@ -62,7 +57,6 @@ setup(
     #     'console_scripts': ['mycli=mymodule:cli'],
     # },
     install_requires=REQUIRED,
-    extras_require=EXTRAS,
     include_package_data=True,
     license='MIT',
     classifiers=[
