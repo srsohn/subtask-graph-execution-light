@@ -1,10 +1,10 @@
-# Subtask-graph-maze
+# Subtask-graph-maze-light
 
 <p align="center">
 <img src="doc/playground_slow.gif" title="*"/>
 </p>
 
-This repository is a python implementation of Playground and Mining domain in [NeurIPS 2018 Hierarchical Reinforcement Learning for Zero-shot Generalization with Subtask Dependencies](https://arxiv.org/pdf/1807.07665.pdf).
+This repository is a minimal python implementation of Playground and Mining domain in [NeurIPS 2018 Hierarchical Reinforcement Learning for Zero-shot Generalization with Subtask Dependencies](https://arxiv.org/pdf/1807.07665.pdf).
 ```
 @inproceedings{sohn2018hierarchical,
   title={Hierarchical Reinforcement Learning for Zero-shot Generalization with Subtask Dependencies},
@@ -31,18 +31,7 @@ pip install .[visualize]
 ```
 
 
-# Interactive demo with visualization
-The following command runs interactive demonstration of Playground environment with 'D3' graph set (see the paper):
-```
-python demo_visual.py --game_name playground --graph_param D3_eval_1
-```
-
-The following command runs interactive demonstration of Mining environment with 'train' graph set (see the paper):
-```
-python demo_visual.py --game_name mining --graph_param train_1
-```
-
-# Demo of random policy without visualization
+# Demo of random policy
 The following command runs demonstration of random policy in Playground environment with 'D2' graph set (see the paper):
 ```
 python demo_random.py --game_name playground --graph_param D2_eval_1
