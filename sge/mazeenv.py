@@ -8,7 +8,7 @@ from sge.utils import WHITE, BLACK, DARK, LIGHT, GREEN, DARK_RED
 
 
 class MazeEnv(object):  # single batch
-    def __init__(self, game_name, graph_param, game_len, gamma):
+    def __init__(self, args, game_name, graph_param, game_len, gamma):
         if game_name == 'playground':
             from sge.playground import Playground
             game_config = Playground()
@@ -61,9 +61,9 @@ class MazeEnv(object):  # single batch
 
         return self._get_state(), self.reward, (self.game_over or self.time_over), self._get_info()
 
-    def reset(self, seed=None, graph_index=None):  # after every episode
-        if seed is not None:
-            np.random.seed(seed)
+    def reset(self, graph_index=None):  # after every episode
+        #if self.seed is not None:
+        #    np.random.seed(self.seed)
         if graph_index is None:
             graph_index = np.random.permutation(self.graph.num_graph)[0]
         else:
