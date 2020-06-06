@@ -22,7 +22,7 @@ This repository is a minimal python implementation of Playground and Mining doma
 You can perform a minimal installation of SGE with:
 ```
 git clone https://github.com/srsohn/subtask-graph-execution-light.git
-cd subtask-graph-maze
+cd subtask-graph-maze-light
 pip install .
 ```
 If you want interactive demo with visualization:
