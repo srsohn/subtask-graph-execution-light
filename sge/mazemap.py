@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from collections import deque
-from sge.utils import MOVE_ACTS, AGENT, BLOCK, WATER, KEY, OBJ_BIAS,\
+from sge.utils import MOVE_ACTS, AGENT, BLOCK, WATER, EMPTY, KEY, OBJ_BIAS,\
     TYPE_PICKUP, TYPE_TRANSFORM, \
     WHITE, BLACK, DARK, LIGHT, GREEN, DARK_RED
 
@@ -148,22 +148,33 @@ class Mazemap(object):
         # random block
         if self.config.nb_block[0] < self.config.nb_block[1]:
             nb_block = np.random.randint(
-                self.config.nb_block[0], self.config.nb_block[1])
+                self.config.nb_block[0], self.config.nb_block[1]+1)
+            num_candidate = len(self.empty_list)
             pool = np.random.permutation(self.empty_list)
-            count = 0
-            for (x, y) in pool:
-                if count == nb_block:
-                    break
-                # based on self.item_map & empty_list
-                if self._check_block(self.empty_list):
+            pool_idx = 0
+            for block_idx in range(nb_block):
+                success = False
+                while pool_idx < num_candidate:
+                    # 1. pop from candidate
+                    x, y = pool[pool_idx]
+                    pool_idx += 1
+
+                    # 2. check connectivity
                     self.empty_list.remove((x, y))
-                    self.walls.append((x, y))
-                    self.item_map[x, y] = 1  # block
-                    count += 1
-            if count != nb_block:
-                print(
-                    'cannot generate a map without inaccessible regions! Decrease the #blocks')
-                assert(False)
+                    self.item_map[x, y] = BLOCK
+                    if self._check_connectivity(self.empty_list): # if okay, add the block
+                        self.walls.append((x, y))
+                        self.obs[BLOCK, x, y] = 1
+                        success = True
+                        break
+                    else: # if not, revert
+                        self.empty_list.append((x, y))
+                        self.item_map[x, y] = EMPTY
+                if not success:
+                    import ipdb; ipdb.set_trace()
+                    raise RuntimeError('Cannot generate a map without\
+                        inaccessible regions! Decrease the #waters or #blocks')
+
         for (x, y) in self.walls:
             self.obs[BLOCK, x, y] = 1
 
@@ -171,22 +182,33 @@ class Mazemap(object):
         self.waters = []
         if self.config.nb_water[0] < self.config.nb_water[1]:
             nb_water = np.random.randint(
-                self.config.nb_water[0], self.config.nb_water[1])
+                self.config.nb_water[0], self.config.nb_water[1]+1)
+            num_candidate = len(self.empty_list)
             pool = np.random.permutation(self.empty_list)
-            count = 0
-            for (x, y) in pool:
-                if count == nb_water:
-                    break
-                if self._check_block(self.empty_list):  # success
+            pool_idx = 0
+            
+            for water_idx in range(nb_water):
+                success = False
+                while pool_idx < num_candidate:
+                    # 1. pop from candidate
+                    x, y = pool[pool_idx]
+                    pool_idx += 1
+
+                    # 2. check connectivity
                     self.empty_list.remove((x, y))
-                    self.waters.append((x, y))
-                    # water
-                    self.item_map[x, y] = 2
-                    self.obs[WATER, x, y] = 1
-                    count += 1
-            if count != nb_water:
-                raise RuntimeError('Cannot generate a map without\
-                    inaccessible regions! Decrease the #waters or #blocks')
+                    self.item_map[x, y] = WATER
+                    if self._check_connectivity(self.empty_list): # if okay, add the water
+                        self.waters.append((x, y))
+                        self.obs[WATER, x, y] = 1
+                        success = True
+                        break
+                    else: # if not, revert
+                        self.empty_list.append((x, y))
+                        self.item_map[x, y] = EMPTY
+                if not success:
+                    import ipdb; ipdb.set_trace()
+                    raise RuntimeError('Cannot generate a map without\
+                        inaccessible regions! Decrease the #waters or #blocks')
 
     def _add_targets(self):
         # reset
@@ -225,7 +247,7 @@ class Mazemap(object):
             self.omask[oid] = 1
             self._add_item(oid, pos)
 
-    def _check_block(self, empty_list):
+    def _check_connectivity(self, empty_list):
         nb_empty = len(empty_list)
         mask = np.copy(self.item_map)
         #
@@ -241,6 +263,9 @@ class Mazemap(object):
                 if mask[item[0], item[1]] == -1:  # if empty
                     mask[item[0], item[1]] = 1
                     queue.append(item)
+        if count > nb_empty:
+          print('Bug in the code')
+          import ipdb; ipdb.set_trace()
         return count == nb_empty
 
     def _get_cur_item(self):

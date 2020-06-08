@@ -25,15 +25,15 @@ if __name__ == '__main__':
 
     env = MazeEnv(args.game_name, args.graph_param,
                   args.game_len, args.gamma)
-
-    env.reset(args.seed)
     action_set = env.get_actions()
+    
+    env.reset()
     step, done = 0, False
     while not done:
-        action = random.sample(list(action_set), 1)[0]
+      action = random.sample(list(action_set), 1)[0]
 
-        state, rew, done, info = env.step(action)
+      state, rew, done, info = env.step(action)
 
-        string = 'Step={:02d}, Action={}, Reward={:.2f}, Done={}'
-        print(string.format(step, action, rew, done))
-        step += 1
+      string = 'Step={:02d}, Action={}, Reward={:.2f}, Done={}'
+      print(string.format(step, action, rew, done))
+      step += 1
