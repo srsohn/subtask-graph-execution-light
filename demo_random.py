@@ -26,8 +26,8 @@ if __name__ == '__main__':
     env = MazeEnv(args.game_name, args.graph_param,
                   args.game_len, args.gamma)
     action_set = env.get_actions()
-    
-    env.reset()
+
+    state, info = env.reset()
     step, done = 0, False
     while not done:
       action = random.sample(list(action_set), 1)[0]

@@ -61,7 +61,8 @@ class Mazemap(object):
             elif action == KEY.UP:
                 new_y -= 1
             # wall_collision
-            if not (new_x, new_y) in self.walls and not (new_x, new_y) in self.waters:
+            item_id = self.item_map[new_x, new_y]
+            if not (item_id == BLOCK or item_id == WATER): # If not block or water, agent can move
                 self.obs[AGENT, self.agent_x, self.agent_y] = 0
                 self.agent_x = new_x
                 self.agent_y = new_y
@@ -130,21 +131,13 @@ class Mazemap(object):
 
     def _add_blocks(self):
         # boundary
-        self.walls = [(0, y) for y in range(self.h)]  # left wall
-        self.walls = self.walls + [(self.w-1, y)
-                                   for y in range(self.h)]  # right wall
-        self.walls = self.walls + [(x, 0)
-                                   for x in range(self.w)]  # bottom wall
-        self.walls = self.walls + [(x, self.h-1)
-                                   for x in range(self.w)]  # top wall
+        self.item_map[0:self.w:self.w-1, :] = BLOCK # left, right wall
+        self.item_map[:, 0:self.h:self.h-1] = BLOCK # top, bottom wall
 
-        for x in range(self.w):
-            for y in range(self.h):
-                if (x, y) not in self.walls:
-                    self.empty_list.append((x, y))
-                else:
-                    self.item_map[x, y] = 1  # block
-
+        # empty list
+        self.empty_list = np.argwhere(self.item_map == EMPTY).tolist()
+        self.empty_list = [tuple(l) for l in self.empty_list]
+        
         # random block
         if self.config.nb_block[0] < self.config.nb_block[1]:
             nb_block = np.random.randint(
@@ -163,8 +156,6 @@ class Mazemap(object):
                     self.empty_list.remove((x, y))
                     self.item_map[x, y] = BLOCK
                     if self._check_connectivity(self.empty_list): # if okay, add the block
-                        self.walls.append((x, y))
-                        self.obs[BLOCK, x, y] = 1
                         success = True
                         break
                     else: # if not, revert
@@ -175,11 +166,7 @@ class Mazemap(object):
                     raise RuntimeError('Cannot generate a map without\
                         inaccessible regions! Decrease the #waters or #blocks')
 
-        for (x, y) in self.walls:
-            self.obs[BLOCK, x, y] = 1
-
         # random water
-        self.waters = []
         if self.config.nb_water[0] < self.config.nb_water[1]:
             nb_water = np.random.randint(
                 self.config.nb_water[0], self.config.nb_water[1]+1)
@@ -198,7 +185,6 @@ class Mazemap(object):
                     self.empty_list.remove((x, y))
                     self.item_map[x, y] = WATER
                     if self._check_connectivity(self.empty_list): # if okay, add the water
-                        self.waters.append((x, y))
                         self.obs[WATER, x, y] = 1
                         success = True
                         break
@@ -209,6 +195,10 @@ class Mazemap(object):
                     import ipdb; ipdb.set_trace()
                     raise RuntimeError('Cannot generate a map without\
                         inaccessible regions! Decrease the #waters or #blocks')
+        
+        # Apply changes to self.obs  
+        self.obs[BLOCK][self.item_map == BLOCK] = True
+        self.obs[WATER][self.item_map == WATER] = True
 
     def _add_targets(self):
         # reset
