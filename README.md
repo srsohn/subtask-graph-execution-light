@@ -30,6 +30,11 @@ If you want interactive demo with visualization:
 pip install .[visualize]
 ```
 
+# Test run
+Run the random policy for 1k iteration and  evaluate the average episode return:
+```
+python test.py --agent 'random' --iter 1000
+```
 
 # Demo of random policy
 The following command runs demonstration of random policy in Playground environment with 'D2' graph set (see the paper):
