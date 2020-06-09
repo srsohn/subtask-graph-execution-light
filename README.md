@@ -25,10 +25,6 @@ git clone https://github.com/srsohn/subtask-graph-execution-light.git
 cd subtask-graph-maze-light
 pip install .
 ```
-If you want interactive demo with visualization:
-```
-pip install .[visualize]
-```
 
 # Test run
 Run the random policy for 100 pre-generated graphs and evaluate the average episode return. The final output should be around 0.045.
