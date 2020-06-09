@@ -31,9 +31,9 @@ pip install .[visualize]
 ```
 
 # Test run
-Run the random policy for 1k iteration and  evaluate the average episode return:
+Run the random policy for 100 pre-generated graphs and evaluate the average episode return. The final output should be around 0.045.
 ```
-python test.py --agent 'random' --iter 1000
+python test.py --agent 'random'
 ```
 
 # Demo of random policy
