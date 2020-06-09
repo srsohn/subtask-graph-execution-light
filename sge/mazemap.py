@@ -2,13 +2,7 @@ import os
 import numpy as np
 from collections import deque
 from sge.utils import MOVE_ACTS, AGENT, BLOCK, WATER, EMPTY, KEY, OBJ_BIAS,\
-    TYPE_PICKUP, TYPE_TRANSFORM, \
-    WHITE, BLACK, DARK, LIGHT, GREEN, DARK_RED
-
-CHR_WIDTH = 9
-TABLE_ICON_SIZE = 40
-MARGIN = 10
-LEGEND_WIDTH = 250
+    TYPE_PICKUP, TYPE_TRANSFORM
 
 __PATH__ = os.path.abspath(os.path.dirname(__file__))
 

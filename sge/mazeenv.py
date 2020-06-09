@@ -8,7 +8,7 @@ from sge.utils import WHITE, BLACK, DARK, LIGHT, GREEN, DARK_RED
 
 
 class MazeEnv(object):  # single batch
-    def __init__(self, game_name, graph_param, game_len, gamma):
+    def __init__(self, args, game_name, graph_param, game_len, gamma):
         if game_name == 'playground':
             from sge.playground import Playground
             game_config = Playground()

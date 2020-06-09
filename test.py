@@ -3,9 +3,8 @@ import sys
 import random
 import numpy as np
 
-from agent import *
+from agent import RandomAgent
 from sge.mazeenv import MazeEnv
-from sge.utils import KEY
 
 ###################
 
@@ -17,8 +16,6 @@ if __name__ == '__main__':
     parser.add_argument('--graph_param', default='train_1',
                         help='difficulty of subtask graph')
     parser.add_argument('--game_len', default=70,
-                        type=int, help='episode length')
-    parser.add_argument('--iter', default=1000,
                         type=int, help='episode length')
     parser.add_argument('--agent', default='random', choices=['random'],
                         help='random seed')
@@ -39,20 +36,22 @@ if __name__ == '__main__':
     if args.agent == 'random':
         agent = RandomAgent(args, env)
 
-    ep_rews, ep_rew = [], 0
-    state, info = env.reset()
-    for step in range(args.iter):
-        action = agent.act(state)
-        state, rew, done, info = env.step(action)
-        ep_rew += rew
-
-        if done:
-            print('Step={:02d}, Ep Return={:.2f}'.format(step, ep_rew))
-            env.reset()
-            ep_rews.append(ep_rew)
+    NUM_GRAPH = 100
+    NUM_ITER = 32
+    ep_rews = []
+    for graph_id in range(NUM_GRAPH):
+        for _ in range(NUM_ITER):
             ep_rew = 0
+            state, info = env.reset(graph_index=graph_id)
+            done = False
+            while not done:
+                action = agent.act(state)
+                state, rew, done, info = env.step(action)
+                ep_rew += rew
+            ep_rews.append(ep_rew)
 
-        #string = 'Step={:02d}, Action={}, Reward={:.2f}, Done={}'
-        #print(string.format(step, action, rew, done))
+        string = 'Graph={:02d}/{:02d}, Return={:.4f}'
+        print(string.format(graph_id, NUM_GRAPH, sum(ep_rews)/len(ep_rews)))
 
-    print('Avg. Ep Return={:.2f}'.format(sum(ep_rews)/len(ep_rews)))
+    print('Avg. Ep Return={:.4f}'.format(sum(ep_rews)/len(ep_rews)))
+    print('This should be around 0.0455')
