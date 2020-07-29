@@ -5,8 +5,6 @@ __pycache__/
 render
 .vscode
 *.ttf
-render_PIL.py
-Modify_icon.py
 
 # C extensions
 *.so

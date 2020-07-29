@@ -1,6 +1,10 @@
 from enum import Enum
 import numpy as np
+from collections import defaultdict
 
+MAX_DIST = 2**14-2
+
+OID_TO_IID = lambda x: x+3
 
 class KEY(Enum):
     UP = 0,
@@ -44,10 +48,49 @@ def get_id_from_ind_multihot(indexed_tensor, mapping, max_dim):
         mapping = mapping_
     if indexed_tensor.ndim == 2:
         nbatch = indexed_tensor.shape[0]
-        out = np.zeros(nbatch, max_dim).astype(np.byte)
+        out = np.zeros(nbatch, max_dim).astype(indexed_tensor.dtype)
         np.add.at(out, mapping.ravel(), indexed_tensor.ravel())
     else:
-        out = np.zeros(max_dim).astype(np.byte)
+        out = np.zeros(max_dim).astype(indexed_tensor.dtype)
         np.add.at(out, mapping.ravel(), indexed_tensor.ravel())
 
     return out
+
+class TimeProfiler(object):
+  """Maintain moving statistics of time profile."""
+  def __init__(self, prefix=''):
+    self._prefix = 'time_profile/' + prefix
+    self._buffer_dict = defaultdict(float)
+    self._buffer_count = 0.
+    self._safe_lock = defaultdict(bool)
+    #
+    self._prev_time_stamp = None
+
+  def stamp(self, time_stamp, name=None):
+    if name is not None:
+      if self._prev_time_stamp is None:
+        print("Error in Timeprofiler!!! You should call stamp() without 'name' argument after 'period_over()!!")
+        assert False
+      self._buffer_dict[name] += time_stamp - self._prev_time_stamp
+    '''if self._prev_time_stamp is None: pass
+    else:
+      print(name, time_stamp - self._prev_time_stamp)'''
+    self._prev_time_stamp = time_stamp
+  
+  def period_over(self):
+    self._prev_time_stamp = None
+    self._buffer_count += 1.
+  
+  def print(self):
+    if self._prev_time_stamp is not None:
+      print("Error in Timeprofiler!!! You should finish profiling full period before logging!")
+      assert False
+    for k, v in self._buffer_dict.items():
+      print('%s = %.2f (sec)'%(self._prefix + k, v / self._buffer_count))
+  
+  def log_summary(self, summary_logger):
+    if self._prev_time_stamp is not None:
+      print("Error in Timeprofiler!!! You should finish profiling full period before logging!")
+      assert False
+    for k, v in self._buffer_dict.items():
+      summary_logger.logkv(self._prefix + k, v / self._buffer_count)

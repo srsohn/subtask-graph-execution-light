@@ -1,6 +1,7 @@
 import os
 import sys
 import random
+import time
 import numpy as np
 
 from agent import RandomAgent
@@ -22,13 +23,19 @@ if __name__ == '__main__':
                         help='random seed')
     parser.add_argument('--gamma', default=0.99, type=float,
                         help='discount factor')
+    parser.add_argument('--render', default=False,
+                        action='store_true', help='rendering observation')
     args = parser.parse_args()
 
-    env = MazeEnv(args, args.game_name, args.graph_param,
+    # Initialize environment & agent
+    env = MazeEnv(args.game_name, args.graph_param,
                   args.game_len, args.gamma)
-    agent = RandomAgent(args, env)
+    agent = RandomAgent(env.action_spec)
 
+    # Reset
+    init = time.time()
     state, info = env.reset()
+
     step, done = 0, False
     while not done:
       action = agent.act(state)
@@ -37,3 +44,5 @@ if __name__ == '__main__':
       string = 'Step={:02d}, Action={}, Reward={:.2f}, Done={}'
       print(string.format(step, action, rew, done))
       step += 1
+    
+    print('fps=', step / (time.time() - init)  )

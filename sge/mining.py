@@ -1,4 +1,4 @@
-from .utils import TYPE_PICKUP, TYPE_TRANSFORM, KEY, MOVE_ACTS
+from .utils import AGENT, BLOCK, WATER, EMPTY, TYPE_PICKUP, TYPE_TRANSFORM, KEY, MOVE_ACTS, OID_TO_IID
 
 
 class Mining(object):
@@ -65,12 +65,19 @@ class Mining(object):
             KEY.USE_5: dict(name='use_5', oper_type=TYPE_TRANSFORM, key='5'),
         }
         # item = agent+block+water+objects
+        item_image_name_by_iid = dict()
+        item_image_name_by_iid[AGENT] = 'agent.png'
+        item_image_name_by_iid[BLOCK] = 'mountain.png'
+        item_image_name_by_iid[WATER] = 'water.png'
+
         item_name_to_iid = dict()
         item_name_to_iid['agent'] = 0
         item_name_to_iid['block'] = 1
         item_name_to_iid['water'] = 2
         for obj in obj_list:
-            item_name_to_iid[obj['name']] = obj['oid'] + 3
+            iid = OID_TO_IID(obj['oid'])
+            item_name_to_iid[obj['name']] = iid
+            item_image_name_by_iid[iid] = obj['imgname']
 
         # subtask
         subtask_list = []
@@ -147,6 +154,7 @@ class Mining(object):
         self.object_param_list = obj_list
         self.nb_obj_type = nb_obj_type
         self.item_name_to_iid = item_name_to_iid
+        self.item_image_name_by_iid = item_image_name_by_iid
         self.nb_block = nb_block
         self.nb_water = nb_water
         self.subtask_list = subtask_list
@@ -154,6 +162,7 @@ class Mining(object):
         self.subtask_param_to_id = subtask_param_to_id
 
         self.nb_subtask_type = len(subtask_list)
+        self.rendering_scale = 96
         self.width = 10
         self.height = 10
         self.feat_dim = 3*len(subtask_list)+1

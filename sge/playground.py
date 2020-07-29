@@ -1,4 +1,4 @@
-from .utils import TYPE_PICKUP, TYPE_TRANSFORM, KEY, MOVE_ACTS
+from .utils import AGENT, BLOCK, WATER, EMPTY, TYPE_PICKUP, TYPE_TRANSFORM, KEY, MOVE_ACTS, OID_TO_IID
 
 
 class Playground(object):
@@ -45,12 +45,19 @@ class Playground(object):
                              updateable=False, speed=0))
 
         #item = agent+block+water+objects
+        item_image_name_by_iid = dict()
+        item_image_name_by_iid[AGENT] = 'agent.png'
+        item_image_name_by_iid[BLOCK] = 'block.png'
+        item_image_name_by_iid[WATER] = None
+
         item_name_to_iid = dict()
         item_name_to_iid['agent'] = 0
         item_name_to_iid['block'] = 1
         item_name_to_iid['water'] = 2
         for obj in obj_list:
-            item_name_to_iid[obj['name']] = obj['oid'] + 3
+            iid = OID_TO_IID(obj['oid'])
+            item_name_to_iid[obj['name']] = iid
+            item_image_name_by_iid[iid] = obj['imgname']
 
         # subtask
         subtask_list = []
@@ -77,6 +84,7 @@ class Playground(object):
         self.object_param_list = obj_list
         self.nb_obj_type = nb_obj_type
         self.item_name_to_iid = item_name_to_iid
+        self.item_image_name_by_iid = item_image_name_by_iid
         self.nb_block = nb_block
         self.nb_water = nb_water
         self.subtask_list = subtask_list
@@ -84,6 +92,7 @@ class Playground(object):
         self.subtask_param_to_id = subtask_param_to_id
 
         self.nb_subtask_type = len(subtask_list)  # 16
+        self.rendering_scale = 32
         self.width = 10
         self.height = 10
         self.feat_dim = 3*self.nb_subtask_type+1
